@@ -1,0 +1,613 @@
+{% extends "base.html" %}
+
+{% block body %}
+<!-- Loading Screen -->
+<div class="loading-screen" id="loadingScreen">
+    <div class="loading-content">
+        <div class="loading-logo">
+            <svg class="loading-truck" width="80" height="80" viewBox="0 0 32 32" fill="none">
+                <rect x="4" y="10" width="24" height="14" rx="2" fill="#4A5FE8"/>
+                <rect x="6" y="16" width="8" height="6" fill="#3B4CC0"/>
+                <circle cx="10" cy="26" r="2" fill="#2C3B95"/>
+                <circle cx="22" cy="26" r="2" fill="#2C3B95"/>
+            </svg>
+        </div>
+        <div class="loading-text">
+            <span class="logo-text-loader">Eco<span class="logo-pro-loader">Route</span></span>
+        </div>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+        <p class="loading-subtitle">Optimizing your delivery routes...</p>
+    </div>
+    <div class="loading-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
+</div>
+
+<div class="app-container">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-btn" id="menuBtn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <div class="logo">
+                <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <rect x="4" y="10" width="24" height="14" rx="2" fill="#4A5FE8"/>
+                    <rect x="6" y="16" width="8" height="6" fill="#3B4CC0"/>
+                    <circle cx="10" cy="26" r="2" fill="#2C3B95"/>
+                    <circle cx="22" cy="26" r="2" fill="#2C3B95"/>
+                </svg>
+                <span class="logo-text">Eco<span class="logo-pro">Route</span></span>
+            </div>
+        </div>
+        <div class="header-right">
+            {% if route_info %}
+            <a href="/export_pdf" target="_blank" class="export-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="12" y1="18" x2="12" y2="12"></line>
+                    <line x1="9" y1="15" x2="15" y2="15"></line>
+                </svg>
+                Export Drivers PDF
+            </a>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-resize-handle" id="resizeHandle" title="Drag to resize | Double-click to toggle"></div>
+        <div class="sidebar-content">
+            <h3>📍 Starting Point</h3>
+            <form method="POST" id="deliveryForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <input type="text" name="current_address" id="current_address"
+                           placeholder="Enter start address" required class="input">
+                    <button type="button" onclick="fetchCurrentLocation()" id="gpsBtn" class="gps-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                        Use GPS
+                    </button>
+                </div>
+
+                <h3>📦 Delivery Destinations</h3>
+
+                <!-- CSV Upload -->
+                <div class="csv-upload">
+                    <label for="csv_file" class="csv-label">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                            <polyline points="13 2 13 9 20 9"></polyline>
+                        </svg>
+                        Bulk Import CSV
+                    </label>
+                    <input type="file" id="csv_file" name="csv_file" accept=".csv" onchange="handleCsvSelect(this)" style="display: none;">
+                    <button type="button" onclick="clearCsvFile()" id="clearCsvBtn" class="clear-csv-btn" style="display:none;">Clear</button>
+                </div>
+                <p class="csv-note">CSV format: <code>address</code> and <code>item_type</code> columns. <a href="/static/sample_deliveries (2).csv" download>Download sample</a></p>
+
+                <!-- Manual Address Entry -->
+                <div id="manualAddressSection">
+                    <div id="addressContainer">
+                        <div class="address-item" data-stop-number="1">
+                            <input type="text" name="address" placeholder="Destination 1" class="input">
+                            <select name="item_type" class="select">
+                                <option value="non-perishable">📦 Standard</option>
+                                <option value="perishable">🥬 Perishable</option>
+                            </select>
+                            <button type="button" onclick="removeAddress(this)" class="remove-btn">×</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="addAddress()" class="add-stop-btn">+ Add Stop</button>
+                </div>
+
+                <h3>🚛 Fleet Configuration</h3>
+                <div class="form-group">
+                    <label>Number of Vehicles:</label>
+                    <select name="num_vehicles" class="select">
+                        <option value="1">1 Vehicle</option>
+                        <option value="2">2 Vehicles</option>
+                        <option value="3">3 Vehicles</option>
+                        <option value="4">4 Vehicles</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="optimize-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Optimize Route
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Error/Success Messages -->
+        {% if csv_import_info %}
+        <div class="alert alert-success">✅ {{ csv_import_info }}</div>
+        {% endif %}
+        {% if error %}
+        <div class="alert alert-error">⚠️ {{ error }}</div>
+        {% endif %}
+
+        {% if route_info %}
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #E3F2FD;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#1976D2">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Distance</div>
+                    <div class="stat-value">{{ route_info.total_distance }} <span class="stat-unit">km</span></div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #E8F5E9;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#388E3C">
+                        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Vehicles Used</div>
+                    <div class="stat-value">{{ route_info.num_vehicles }}</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #FFF3E0;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#F57C00">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Stops</div>
+                    <div class="stat-value">{{ route_info.total_stops }}</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #F3E5F5;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#7B1FA2">
+                        <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Distance Saved</div>
+                    <div class="stat-value">{{ route_info.distance_saved }} <span class="stat-unit">km</span></div>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-highlight">
+                <div class="stat-icon" style="background: rgba(255,255,255,0.2);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+                        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4c-1.48 0-2.85.43-4.01 1.17l1.46 1.46C10.21 6.23 11.08 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3 0 1.13-.64 2.11-1.56 2.62l1.45 1.45C23.16 18.16 24 16.68 24 15c0-2.64-2.05-4.78-4.65-4.96zM3 5.27l2.75 2.74C2.56 8.15 0 10.77 0 14c0 3.31 2.69 6 6 6h11.73l2 2L21 20.73 4.27 4 3 5.27zM7.73 10l8 8H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h1.73z"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Eco Efficiency</div>
+                    <div class="stat-value">{{ route_info.percent_saved|round(0)|int }}<span class="stat-unit">%</span></div>
+                </div>
+                <div class="eco-trend">
+                    <svg width="80" height="30" viewBox="0 0 80 30">
+                        <polyline points="0,25 20,20 40,15 60,10 80,5" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+                        <polyline points="0,25 20,20 40,15 60,10 80,5" fill="url(#gradient)" opacity="0.3"/>
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:white;stop-opacity:0.8" />
+                                <stop offset="100%" style="stop-color:white;stop-opacity:0" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map and Sustainability Section -->
+        <div class="content-grid">
+            <div class="map-section">
+                {% if map_html %}
+                <div class="map-container">
+                    {{ map_html | safe }}
+                </div>
+                {% else %}
+                <div class="map-placeholder">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2">
+                        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                        <line x1="8" y1="2" x2="8" y2="18"></line>
+                        <line x1="16" y1="6" x2="16" y2="22"></line>
+                    </svg>
+                    <p>Optimize a route to see the map</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="sidebar-right">
+                <!-- Sustainability Impact -->
+                <div class="sustainability-card">
+                    <h3>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#27ae60">
+                            <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.07-.02C9.52 17.77 12.84 14 18 14v5l7-7-7-7v3z"/>
+                        </svg>
+                        Sustainability Impact
+                    </h3>
+
+                    <div class="metric-bar">
+                        <div class="metric-header">
+                            <span>Fuel Consumed</span>
+                            <span class="metric-value">{% if carbon_data %}{{ carbon_data.fuel_used }}L{% else %}--{% endif %}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {% if carbon_data %}{{ carbon_data.eco_score }}%{% else %}0%{% endif %}; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"></div>
+                        </div>
+                        <div class="metric-percent">{% if carbon_data %}{{ carbon_data.eco_score }}%{% else %}0%{% endif %}</div>
+                    </div>
+
+                    <div class="metric-bar">
+                        <div class="metric-header">
+                            <span>CO₂ Emissions</span>
+                            <span class="metric-value">{% if carbon_data %}{{ carbon_data.co2_emitted }}kg{% else %}--{% endif %}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 68%; background: linear-gradient(90deg, #FFA726 0%, #FB8C00 100%);"></div>
+                        </div>
+                        <div class="metric-percent">68%</div>
+                    </div>
+
+                    <div class="eco-score-card">
+                        <div class="eco-score-content">
+                            <div>
+                                <div class="eco-score-label">Global Eco Score</div>
+                                <div class="eco-score-value">{% if carbon_data %}{{ carbon_data.eco_score }}%{% else %}82%{% endif %}</div>
+                            </div>
+                            <div class="eco-score-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Route Efficiency Comparison -->
+                <div class="efficiency-card">
+                    <h3>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#3498db">
+                            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                        </svg>
+                        Route Efficiency Comparison
+                    </h3>
+
+                    <div class="comparison-bars">
+                        <div class="comparison-item">
+                            <div class="comparison-label">Naive Route</div>
+                            <div class="comparison-bar-container">
+                                <div class="comparison-bar" style="width: {% if route_info %}{{ (route_info.naive_distance / route_info.naive_distance * 100)|round(0)|int }}%{% else %}100%{% endif %}; background: linear-gradient(90deg, #EF5350 0%, #E53935 100%);">
+                                    <span class="comparison-value">{% if route_info %}{{ route_info.naive_distance }} km{% else %}295 km{% endif %}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="comparison-item">
+                            <div class="comparison-label">Optimized Route</div>
+                            <div class="comparison-bar-container">
+                                <div class="comparison-bar" style="width: {% if route_info %}{{ (route_info.total_distance / route_info.naive_distance * 100)|round(0)|int }}%{% else %}71%{% endif %}; background: linear-gradient(90deg, #66BB6A 0%, #43A047 100%);">
+                                    <span class="comparison-value">{% if route_info %}{{ route_info.total_distance }} km{% else %}210 km{% endif %}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trip Manifests -->
+        {% if optimized_addresses %}
+        <div class="manifests-section">
+            <h2>Trip Manifests</h2>
+
+            {% set vehicle_dict = {} %}
+            {% for item in optimized_addresses %}
+                {% if item.vehicle not in vehicle_dict %}
+                    {% set _ = vehicle_dict.update({item.vehicle: []}) %}
+                {% endif %}
+                {% set _ = vehicle_dict[item.vehicle].append(item) %}
+            {% endfor %}
+
+            <div class="manifests-grid">
+                {% for vehicle, stops in vehicle_dict.items() %}
+                {% set colors = ['#2196F3', '#4CAF50', '#FFC107', '#F44336'] %}
+                {% set vehicle_color = colors[(vehicle - 1) % 4] %}
+                <div class="manifest-card" style="border-left: 4px solid {{ vehicle_color }};">
+                    <div class="manifest-header">
+                        <div class="manifest-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="{{ vehicle_color }}">
+                                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                            </svg>
+                            Vehicle {{ vehicle }}
+                        </div>
+                        <button class="expand-btn" onclick="toggleManifest(this)">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="manifest-stats">
+                        <span>{{ stops|length }} Stops</span>
+                        {% if route_info.vehicle_distances %}
+                        <span>{{ route_info.vehicle_distances[vehicle - 1] }} km</span>
+                        {% endif %}
+                    </div>
+                    <div class="manifest-stops">
+                        {% for stop in stops %}
+                        <div class="manifest-stop">
+                            <div class="stop-number">{{ loop.index }}</div>
+                            <div class="stop-address">
+                                {% if stop.is_current %}
+                                    <strong>Depot</strong>
+                                {% else %}
+                                    {{ stop.address }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- Welcome State -->
+        <div class="welcome-state">
+            <div class="welcome-icon">
+                <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#4A5FE8" stroke-width="1.5">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                </svg>
+            </div>
+            <h2>Welcome to EcoRoute</h2>
+            <p>Start by entering your starting point and delivery destinations in the sidebar to optimize your route.</p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+
+<!-- Scripts -->
+<script>
+// Loading Screen Handler
+window.addEventListener('load', function() {
+    const loadingScreen = document.getElementById('loadingScreen');
+
+    // Hide loading screen after animation completes
+    setTimeout(() => {
+        loadingScreen.style.display = 'none';
+    }, 2500);
+});
+</script>
+
+<script>
+function addAddress() {
+    const container = document.getElementById("addressContainer");
+    const div = document.createElement("div");
+    div.className = "address-item";
+
+    // Add stop number for mobile view
+    const stopNumber = container.children.length + 1;
+    div.setAttribute('data-stop-number', stopNumber);
+
+    div.innerHTML = `
+        <input type="text" name="address" placeholder="Destination ${stopNumber}" class="input">
+        <select name="item_type" class="select">
+            <option value="non-perishable">📦 Standard</option>
+            <option value="perishable">🥬 Perishable</option>
+        </select>
+        <button type="button" onclick="removeAddress(this)" class="remove-btn">×</button>
+    `;
+    container.appendChild(div);
+    updateStopNumbers();
+}
+
+function updateStopNumbers() {
+    const container = document.getElementById("addressContainer");
+    Array.from(container.children).forEach((item, index) => {
+        item.setAttribute('data-stop-number', index + 1);
+        const input = item.querySelector('input[name="address"]');
+        if (input && input.placeholder.startsWith('Destination')) {
+            input.placeholder = `Destination ${index + 1}`;
+        }
+    });
+}
+
+function removeAddress(button) {
+    button.parentElement.remove();
+    updateStopNumbers();
+}
+
+function fetchCurrentLocation() {
+    const addressInput = document.getElementById("current_address");
+    const btn = document.getElementById("gpsBtn");
+
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser.");
+        return;
+    }
+
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"></circle></svg> Locating...';
+    btn.disabled = true;
+
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`)
+                .then(response => response.json())
+                .then(data => {
+                    addressInput.value = data.display_name || lat + ", " + lon;
+                })
+                .catch(() => {
+                    addressInput.value = lat + ", " + lon;
+                })
+                .finally(() => {
+                    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> Use GPS';
+                    btn.disabled = false;
+                });
+        },
+        function() {
+            alert("Please allow location access.");
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> Use GPS';
+            btn.disabled = false;
+        }
+    );
+}
+
+function handleCsvSelect(input) {
+    const manualSection = document.getElementById("manualAddressSection");
+    const clearBtn = document.getElementById("clearCsvBtn");
+
+    if (input.files && input.files.length > 0) {
+        manualSection.style.opacity = "0.5";
+        manualSection.style.pointerEvents = "none";
+        clearBtn.style.display = "inline-block";
+    } else {
+        restoreManualSection();
+    }
+}
+
+function clearCsvFile() {
+    const fileInput = document.getElementById("csv_file");
+    fileInput.value = "";
+    restoreManualSection();
+}
+
+function restoreManualSection() {
+    const manualSection = document.getElementById("manualAddressSection");
+    const clearBtn = document.getElementById("clearCsvBtn");
+    manualSection.style.opacity = "1";
+    manualSection.style.pointerEvents = "auto";
+    clearBtn.style.display = "none";
+}
+
+function toggleManifest(btn) {
+    const card = btn.closest('.manifest-card');
+    const stops = card.querySelector('.manifest-stops');
+    const isExpanded = stops.style.display === 'block';
+
+    stops.style.display = isExpanded ? 'none' : 'block';
+    btn.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+}
+
+// No mobile menu toggle needed - sidebar shows inline on mobile
+
+// Sidebar Resize Functionality
+(function() {
+    const sidebar = document.getElementById('sidebar');
+    const resizeHandle = document.getElementById('resizeHandle');
+    const appContainer = document.querySelector('.app-container');
+
+    let isResizing = false;
+    let lastDownX = 0;
+
+    // Load saved width from localStorage or set default medium width
+    const savedWidth = localStorage.getItem('sidebarWidth');
+    const defaultWidth = 400; // Medium width
+
+    if (savedWidth) {
+        sidebar.style.width = savedWidth + 'px';
+        appContainer.style.gridTemplateColumns = savedWidth + 'px 1fr';
+    } else {
+        // Set default medium width on first load
+        sidebar.style.width = defaultWidth + 'px';
+        appContainer.style.gridTemplateColumns = defaultWidth + 'px 1fr';
+    }
+
+    resizeHandle.addEventListener('mousedown', function(e) {
+        // Only allow resizing on desktop
+        if (window.innerWidth <= 968) return;
+
+        isResizing = true;
+        lastDownX = e.clientX;
+        document.body.style.cursor = 'ew-resize';
+        document.body.style.userSelect = 'none';
+
+        // Add resizing class for visual feedback
+        sidebar.classList.add('resizing');
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!isResizing) return;
+
+        const offsetX = e.clientX - lastDownX;
+        const newWidth = sidebar.offsetWidth + offsetX;
+
+        // Set min and max width
+        const minWidth = 280;
+        const maxWidth = 600;
+
+        if (newWidth >= minWidth && newWidth <= maxWidth) {
+            sidebar.style.width = newWidth + 'px';
+            appContainer.style.gridTemplateColumns = newWidth + 'px 1fr';
+            lastDownX = e.clientX;
+        }
+    });
+
+    document.addEventListener('mouseup', function() {
+        if (isResizing) {
+            isResizing = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            sidebar.classList.remove('resizing');
+
+            // Save width to localStorage
+            localStorage.setItem('sidebarWidth', sidebar.offsetWidth);
+        }
+    });
+
+    // Double-click to toggle between default and expanded
+    resizeHandle.addEventListener('dblclick', function() {
+        // Only allow on desktop
+        if (window.innerWidth <= 968) return;
+
+        const currentWidth = sidebar.offsetWidth;
+        const defaultWidth = 320;
+        const expandedWidth = 450;
+
+        const newWidth = currentWidth <= defaultWidth ? expandedWidth : defaultWidth;
+
+        sidebar.style.width = newWidth + 'px';
+        appContainer.style.gridTemplateColumns = newWidth + 'px 1fr';
+
+        // save to localStorage
+        localStorage.setItem('sidebarWidth', newWidth);
+
+        // Add smooth transition
+        sidebar.style.transition = 'width 0.3s ease';
+        setTimeout(() => {
+            sidebar.style.transition = '';
+        }, 300);
+    });
+
+    // Prevent text selection during resize
+    resizeHandle.addEventListener('selectstart', function(e) {
+        e.preventDefault();
+    });
+})();
+</script>
+{% endblock %}
