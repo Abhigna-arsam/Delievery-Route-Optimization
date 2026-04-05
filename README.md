@@ -397,6 +397,6 @@ git push origin feature/your-feature-name
 
 ---
 <div align="center">
-**Built with 🧠 algorithms and 🌿 sustainability in mind**
+Built with 🧠 algorithms and 🌿 sustainability in mind
  </div>
 <br/>
