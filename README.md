@@ -109,18 +109,67 @@ This tool is perfect for logistics startups, e-commerce businesses, or urban del
 
 ## 📊 How It Works
 
-1. **Geocoding:** Converts addresses into coordinates using **OpenRouteService** and fallback to **Nominatim**.
-2. **Distance Matrix:** Calculates distances between all points using **ORS distance matrix API**.
-3. **Multi-Vehicle Distribution:** Uses **KMeans clustering** to assign stops to different vehicles for balanced load.
-4. **Route Optimization per Vehicle:**
-    - **≤8 stops:** Brute-force permutations to find the **absolute optimal sequence**.
-    - **>8 stops:**
-        - Start with **Nearest Neighbor Heuristic with Priority**.
-        - Refine using **2-opt improvement**.
-        - Apply **priority-based scoring** for perishables and time windows.
-5. **Visualization & Metrics:** Generates interactive **map**, route summary, and **eco-efficiency dashboard**.
+### 📍 1. Geocoding
+- Converts delivery addresses into coordinates using **OpenRouteService**
+- Falls back to **Nominatim (OpenStreetMap)** for reliability
 
 ---
+
+### 📏 2. Distance Matrix
+- Computes pairwise distances between all locations  
+- Uses **ORS road-network distance API** for accuracy  
+- Falls back to **Haversine distance** for large datasets  
+
+---
+
+### 🔵 3. Clustering (Multi-Vehicle Distribution)
+
+- Uses **KMeans clustering** to divide delivery locations into groups (one per vehicle)  
+- Each cluster represents the **set of stops assigned to a vehicle**  
+
+#### 🧠 Key Idea:
+- Minimizes intra-cluster distance → nearby deliveries are grouped together  
+- Ensures **balanced load distribution across vehicles**  
+
+#### ⚙️ Advanced Clustering Techniques:
+- **Constraint-aware weighting:**  
+  - Perishable deliveries are **pulled closer to the depot**  
+  - Ensures they are delivered earlier in the route  
+
+- **Dynamic clustering options:**
+  - **DBSCAN (auto-tuned)** for density-based grouping  
+  - **Agglomerative clustering** as fallback  
+  - **Sweep algorithm** (angle + distance hybrid) for geometric efficiency  
+
+---
+
+### 🚚 4. Route Optimization (Per Vehicle)
+
+- **≤ 8 stops:**  
+  - Brute-force permutations → **globally optimal route**
+
+- **> 8 stops:**  
+  - Start with **Nearest Neighbor (priority-aware)**  
+  - Improve using **2-opt optimization**  
+  - Apply **priority scoring**:
+    - Perishable items → early delivery  
+    - Time-window violations → penalty  
+
+---
+
+### 📈 5. Visualization & Metrics
+
+- Generates **interactive route map (Folium)**  
+- Displays:
+  - Vehicle-wise routes  
+  - Stop sequence  
+  - Delivery clusters  
+
+- Provides analytics:
+  - Total distance  
+  - Fuel usage  
+  - CO₂ emissions  
+  - Eco-efficiency score  
 
 ## 📊 Impact at a Glance
  
