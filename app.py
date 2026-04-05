@@ -1,6 +1,4 @@
 # ============================================================
-# app.py — Upgraded Delivery Route Optimizer (VRP System)
-#
 # Feature markers used throughout:
 #   [F1]  Cross-Cluster Stop-Swap Optimization
 #   [F2]  Constraint-Aware Weighted Clustering
@@ -86,7 +84,7 @@ app = Flask(__name__)
 
 ORS_API_KEY = os.getenv(
     "ORS_API_KEY",
-    "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImE5ZmQyYzY5ZjY3NjQ0MGM5NTI1MDIzNzdlNjExOGYyIiwiaCI6Im11cm11cjY0In0=",
+    "your_api_key_here",
 )
 client = openrouteservice.Client(key=ORS_API_KEY)
 
