@@ -17,38 +17,95 @@ Last-mile logistics contributes **over 50% of operational costs** and significan
 This tool is perfect for logistics startups, e-commerce businesses, or urban delivery services aiming to **save cost, time, and carbon footprint**.
 
 ---
+## 🎯 Features
 
-## 🚀 Key Features
+<table>
+<tr>
+<td width="50%">
 
-### 1️⃣ Smart Route Optimization
+### 🗺️ Smart Multi-Vehicle Routing
+- Hybrid heuristic VRP engine  
+- Brute-force (≤8 stops) → optimal  
+- Nearest Neighbor + 2-Opt (>8 stops)  
+- Cross-cluster optimization [F1]  
+- Guaranteed improvement over naive routing  
 
-- **Balanced multi-vehicle routing** using heuristic VRP.
-- Supports **perishable vs. standard items** for priority scheduling.
-- Integrates **time window penalties** to ensure on-time deliveries.
+</td>
+<td width="50%">
 
-### 2️⃣ Dynamic Clustering & Load Balancing
+### 🔵 Constraint-Aware Clustering
+- KMeans with priority weighting  
+- DBSCAN dynamic tuning [F3]  
+- Agglomerative fallback  
+- Hybrid Sweep algorithm [F4]  
 
-- Automatic delivery clustering using **KMeans** for multiple vehicles.
-- Minimizes distance differences between vehicles to optimize load distribution.
+</td>
+</tr>
 
-### 3️⃣ Real-Time Map & Visualization
+<tr>
+<td width="50%">
 
-- Interactive **Folium map** showing all routes with vehicle-specific colors.
-- Markers indicate **depot, stops, and optimized sequence**.
+### ⚡ Performance Optimization
+- Distance matrix caching [F5]  
+- Haversine fallback (>30 stops)  
+- Geocoding cache [F6]  
+- Reduced API usage  
 
-### 4️⃣ Sustainable Logistics Dashboard
+</td>
+<td width="50%">
 
-- Calculates **fuel consumption**, **CO₂ emission**, and **eco-efficiency score**.
-- Helps businesses track environmental impact of deliveries.
+### 🌿 Sustainability Insights
+- Fuel consumption tracking  
+- CO₂ emission estimation  
+- Eco-efficiency score  
+- Environmental impact metrics  
 
-### 5️⃣ Easy-to-Use Web Interface
+</td>
+</tr>
 
-- Enter **starting point** (supports GPS auto-detection).
-- Add **multiple delivery addresses** with type selection (perishable/standard).
-- Configure **number of vehicles**.
-- One-click **Optimize Route** button with full route summary and metrics.
+<tr>
+<td width="50%">
 
----
+### 🚦 Dynamic Re-Routing
+- Traffic delay simulation [F7]  
+- 20% delay probability  
+- 1.2×–2.0× delay factor  
+- Automatic rerouting  
+
+</td>
+<td width="50%">
+
+### 📁 CSV Bulk Import
+- UTF-8 validation [F8]  
+- Duplicate removal  
+- Row limit enforcement  
+- Clean error handling  
+
+</td>
+</tr>
+
+<tr>
+<td width="50%">
+
+### 🗺️ Visualization Engine
+- Folium interactive maps [F10]  
+- Vehicle-wise route layers  
+- Heatmap visualization  
+- Inefficiency detection  
+
+</td>
+<td width="50%">
+
+### 📄 PDF Export
+- One-click report generation  
+- Route + metrics summary  
+- Timestamped outputs  
+- Driver-ready sheets  
+
+</td>
+</tr>
+</table>
+
 
 ## 📊 How It Works
 
@@ -65,56 +122,117 @@ This tool is perfect for logistics startups, e-commerce businesses, or urban del
 
 ---
 
+## 📊 Impact at a Glance
+ 
+<div align="center">
+ 
+| Metric | Without Optimizer | With Optimizer | Improvement |
+|--------|:-----------------:|:--------------:|:-----------:|
+| Route Distance | Baseline (naive NN) | Heuristic VRP | **↓ 20–30%** |
+| Delivery Order | Sequential | Priority-scored | **Perishables first** |
+| Vehicle Load | Unbalanced | KMeans clustered | **±Balanced** |
+| CO₂ Emissions | Untracked | Calculated per km | **Full visibility** |
+| Geocoding Failures | Silent | Logged + skipped | **Zero crashes** |
+ 
+</div>
+ 
+<br/>
+
 ## 💻 Tech Stack
+ 
+<div align="center">
+ 
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Backend** | Python 3.11, Flask | Web server & routing engine |
+| **Optimization** | NumPy, SciPy, itertools | VRP heuristics & 2-opt |
+| **ML / Clustering** | scikit-learn | KMeans, DBSCAN, Agglomerative |
+| **Routing API** | OpenRouteService | Real road-network distances & geocoding |
+| **Geocoding Fallback** | Nominatim (OSM) | Zero-cost fallback geocoder |
+| **Mapping** | Folium + HeatMap plugin | Interactive layered route map |
+| **PDF Export** | ReportLab | Driver-ready route sheets |
+| **Data Handling** | pandas | CSV validation & transformation |
+| **Env Config** | python-dotenv | Secure API key management |
+| **Logging** | Python logging | Structured file + console output |
+ 
+</div>
+ 
+<br/>
 
-| Layer | Technology |
-| --- | --- |
-| Backend | Python, Flask |
-| Routing & Optimization | OpenRouteService API, NumPy, SciPy |
-| Frontend | HTML5, CSS3, JavaScript |
-| Mapping & Visualization | Folium |
-| Machine Learning | scikit-learn (KMeans) |
-| Environment Variables | python-dotenv |
+## ⚙️ Installation
+ 
+### Prerequisites
+ 
+- Python 3.11+
+- [OpenRouteService API key](https://openrouteservice.org/dev/#/signup) (free tier available)
+ 
+### Setup
+ 
+```bash
+# 1. Clone the repository
+git clone https://github.com/yourusername/delivery-route-optimizer.git
+cd delivery-route-optimizer
+ 
+# 2. Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate          # Windows: venv\Scripts\activate
+ 
+# 3. Install dependencies
+pip install -r requirements.txt
+ 
+# 4. Configure environment variables
+cp .env.example .env
+# → Add your ORS_API_KEY to .env
+ 
+# 5. Run the app
+python app.py
+# → Open http://localhost:8000
+```
+ 
+### Environment Variables
+ 
+```env
+ORS_API_KEY=your_openrouteservice_api_key_here
+```
+ 
+<br/>
 
-## 🌱 Sustainability Impact
+## 🚀 Usage
+ 
+### Via Web Interface
+ 
+1. Enter your **starting warehouse / depot address**
+2. Add delivery addresses — mark each as `perishable` or `standard`
+3. Set the **number of vehicles**
+4. Click **"Optimize Route"**
+5. Explore the **interactive map**, review per-vehicle stop sequences, and export a **PDF route sheet**
+ 
+### Via CSV Bulk Upload
+ 
+Upload a `.csv` file with the following format:
+ 
+```csv
+address,item_type
+"Madhapur, Hyderabad","perishable"
+"Jubilee Hills, Hyderabad","non-perishable"
+"Somajiguda, Hyderabad","perishable"
+```
+ 
+> `item_type` is optional — defaults to `non-perishable` if omitted.
+ 
+<br/>
 
-| Metric | Value |
-| --- | --- |
-| Total Distance | Calculated automatically |
-| Estimated Fuel | L |
-| CO₂ Emission | kg |
-| Eco Efficiency Score | % |
-
-> Every optimized route reduces distance and emissions compared to naive sequential routing.
-> 
-
----
-
-## 📈 Optimization Results
-
-- **Distance Reduction:** Saves up to 20–30% distance over naive routing.
-- **Perishable Prioritization:** Ensures high-priority deliveries are early in the route.
-- **Balanced Load:** Minimizes difference between longest and shortest vehicle routes.
-
----
-
-## 📌 Real-World Use Cases
-
-1. **Grocery & Food Delivery Services**
-    - Prioritize perishable items like fruits, vegetables, and dairy to be delivered first.
-    - Example: A company like **BigBasket** or **Zomato** can reduce spoilage and fuel costs while ensuring timely deliveries.
-2. **Pharmaceutical & Medical Supplies**
-    - Ensure time-sensitive medicines and vaccines reach hospitals or pharmacies within strict time windows.
-    - Example: Cold-chain vaccine distribution in urban and semi-urban areas.
-3. **E-Commerce & Logistics Companies**
-    - Optimize multi-vehicle routes for multiple warehouses and high-volume deliveries.
-    - Example: **Flipkart or Amazon** can cut delivery distances and balance driver workloads while reducing CO₂ emissions.
-4. **Corporate & Event Catering**
-    - Deliver prepared meals or perishable catering items to multiple locations efficiently.
-    - Example: Large corporate campuses with several office buildings needing coordinated deliveries.
-5. **Sustainable Urban Delivery Initiatives**
-    - Municipal services or eco-friendly startups can plan routes to reduce fuel consumption and environmental footprint.
-    - Example: City-based delivery startups promoting **green logistics**.
+## 🌍 Real-World Use Cases
+ 
+| Industry | Use Case | Key Benefit |
+|----------|----------|-------------|
+| 🛒 **Grocery / Q-Commerce** | BigBasket, Blinkit-style last-mile | Perishables delivered first, zero spoilage |
+| 💊 **Pharma / Cold Chain** | Vaccine & medicine distribution | Time-window enforcement, route PDF for compliance |
+| 📦 **E-Commerce** | Flipkart / Amazon last-mile | Multi-vehicle load balancing, CO₂ reporting |
+| 🍱 **Corporate Catering** | Multi-campus meal delivery | Tight time windows, optimized clustering |
+| 🌱 **Green Logistics** | Eco-delivery startups | Carbon tracking, distance minimization |
+ 
+<br/>
 
 ## **Roles & How They Use the Delivery Route Optimizer**
 
@@ -189,16 +307,47 @@ Driver 1 starts at the warehouse, delivers milk and vegetables first, then conti
 Analyst reports that the system reduced total delivery distance by 15%, saved fuel, and decreased CO₂ emissions, providing actionable insights for future route planning.
 
 ---
+## 📈 Performance Characteristics
+ 
+| Scenario | Algorithm | Typical Runtime |
+|----------|-----------|-----------------|
+| 1 vehicle, ≤8 stops | Brute-force permutation | < 1s |
+| 1 vehicle, >8 stops | Priority-NN + 2-opt | < 2s |
+| 5 vehicles, 50 stops | KMeans + 2-opt + cross-swap | 3–8s |
+| 5 vehicles, 150 stops (CSV max) | Haversine fallback + heuristic | 5–12s |
+ 
+> API call savings: Geocoding cache eliminates duplicate calls; distance matrix cache eliminates re-computation on unchanged inputs.
+ 
+<br/>
 
-### **Key Note on Monitoring:**
+## 🌱 Sustainability Impact
 
-- **Current scope:** Pre-delivery monitoring and planning.
-- Managers and dispatchers **monitor routes, perishable priorities, and efficiency metrics before deliveries start**.
-- **Live GPS tracking is a future enhancement**, not implemented in this version.
+| Metric | Value |
+| --- | --- |
+| Total Distance | Calculated automatically |
+| Estimated Fuel | L |
+| CO₂ Emission | kg |
+| Eco Efficiency Score | % |
 
-## 🌟 Future Enhancements
+> Every optimized route reduces distance and emissions compared to naive sequential routing.
+> 
 
-- Real-time **traffic & weather integration**.
-- **Dynamic rerouting** based on delivery delays.
-- **Mobile-friendly interface**.
-- **Machine learning prediction** for estimated delivery times.
+---
+
+## 🤝 Contributing
+ 
+Contributions are welcome and appreciated!
+ 
+```bash
+# Fork → Clone → Branch → Commit → PR
+git checkout -b feature/your-feature-name
+git commit -m "feat: add your feature"
+git push origin feature/your-feature-name
+```
+<br/>
+
+---
+<div align="center">
+**Built with 🧠 algorithms and 🌿 sustainability in mind**
+ </div>
+<br/>
